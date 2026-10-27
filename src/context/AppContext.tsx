@@ -19,7 +19,8 @@ export type Route =
   | { name: 'articles' }
   | { name: 'article'; article: ArticleItem }
   | { name: 'city'; city: CityRate }
-  | { name: 'about' };
+  | { name: 'about' }
+  | { name: 'notifications' };
 
 interface AppContextType {
   currentRates: CurrentRatesResponse | null;

@@ -8,6 +8,8 @@ import { CitiesScreen, CityDetail } from './screens/CitiesScreen';
 import { ArticlesScreen, ArticleDetail } from './screens/ArticlesScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { MoreScreen, AboutScreen } from './screens/MoreScreen';
+import { NotificationsScreen } from './screens/NotificationsScreen';
+import { PushPrompt } from './components/PushPrompt';
 
 /** يربط زر الرجوع في أندرويد وشريط الحالة (يعمل فقط داخل التطبيق الأصلي) */
 const NativeBridge: React.FC = () => {
@@ -52,6 +54,7 @@ const renderRoute = (r: Route, back: () => boolean) => {
     case 'article': return <ArticleDetail article={r.article} onBack={onBack} />;
     case 'city': return <CityDetail cityKey={r.city.city_key} onBack={onBack} />;
     case 'about': return <AboutScreen onBack={onBack} />;
+    case 'notifications': return <NotificationsScreen onBack={onBack} />;
   }
 };
 
@@ -78,6 +81,7 @@ const Shell: React.FC = () => {
         )}
       </main>
       <BottomNav />
+      <PushPrompt />
     </div>
   );
 };

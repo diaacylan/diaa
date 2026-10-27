@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Newspaper, Sun, Moon, Smartphone, Share2, Star, ShieldCheck, FileText, Mail, Globe, Info, ChevronLeft } from 'lucide-react';
+import { LineChart, Newspaper, Bell, Sun, Moon, Smartphone, Share2, Star, ShieldCheck, FileText, Mail, Globe, Info, ChevronLeft } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AppBar, Row, SectionTitle } from '../components/ui';
 import { ThemeMode } from '../types';
@@ -32,6 +32,7 @@ export const MoreScreen: React.FC = () => {
       <AppBar title="المزيد" />
       <div className="scroll-area flex-1 px-4 pb-6">
         <div className="card divide-y divide-line overflow-hidden">
+          <Row icon={<Bell size={19} />} title="الإشعارات" subtitle="تنبيهات السعر والنشرة اليومية" trailing={chev} onClick={() => push({ name: 'notifications' })} />
           <Row icon={<LineChart size={19} />} title="سجل الأسعار" subtitle="حركة الدولار والذهب خلال 30 يوماً" trailing={chev} onClick={() => push({ name: 'history' })} />
           <Row icon={<Newspaper size={19} />} title="المقالات" subtitle="أخبار وتحليلات السوق" trailing={chev} onClick={() => push({ name: 'articles' })} />
         </div>
