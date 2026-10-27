@@ -1,0 +1,10 @@
+{
+  "name": "Remix Dolar Iraq — دولار العراق",
+  "description": "تطبيق ومتابعة أسعار صرف الدولار وسعر الذهب والمحافظات العراقية لحظة بلحظة مع حاسبة صرف وسجل تاريخي",
+  "requestFramePermissions": [
+    "notifications"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
