@@ -3,6 +3,7 @@ import { LineChart, Newspaper, Sun, Moon, Smartphone, Share2, Star, ShieldCheck,
 import { useApp } from '../context/AppContext';
 import { AppBar, Row, SectionTitle } from '../components/ui';
 import { ThemeMode } from '../types';
+import { Logo } from '../components/Logo';
 
 export const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.dolariraq.app';
 
@@ -76,7 +77,7 @@ export const AboutScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => (
     <AppBar title="عن التطبيق" onBack={onBack} />
     <div className="scroll-area flex-1 px-4 pb-6">
       <div className="flex flex-col items-center py-6">
-        <img src="/icon.png" alt="" className="h-20 w-20 rounded-[22px] object-cover" />
+        <Logo size={88} />
         <h2 className="mt-3 text-xl font-black text-ink">دولار العراق</h2>
         <p className="text-xs text-muted">أسعار الصرف والذهب في العراق</p>
       </div>
