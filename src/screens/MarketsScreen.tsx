@@ -71,6 +71,9 @@ export const MarketsScreen: React.FC = () => {
                   <span className="text-base font-bold text-white/80">د.ع</span>
                 </div>
                 <ChangeBadge change={goldChange} onDark />
+                {r?.warnings?.includes('gold21_carried_forward') && (
+                  <div className="mt-2 text-[11px] text-white/80">لم يصدر سعر جديد اليوم، يُعرض آخر سعر معروف.</div>
+                )}
               </section>
             ) : (
               <Empty icon={<Coins />} title="سعر الذهب غير متوفر حالياً" hint="جرّب التحديث بعد قليل" />

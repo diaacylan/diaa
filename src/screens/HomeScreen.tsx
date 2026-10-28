@@ -71,16 +71,18 @@ export const HomeScreen: React.FC = () => {
               <ChangeBadge change={usdChange} onDark />
               {usdChange && <span className="text-[11px] text-white/70">عن القراءة السابقة</span>}
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2.5">
-              <div className="rounded-2xl bg-white/12 px-3.5 py-2.5">
-                <div className="text-xs text-white/75">سعر البيع</div>
-                <div className="num text-lg font-extrabold">{formatIQD(r?.sell, false)}</div>
+            {r && r.sell !== r.buy && (
+              <div className="mt-4 grid grid-cols-2 gap-2.5">
+                <div className="rounded-2xl bg-white/12 px-3.5 py-2.5">
+                  <div className="text-xs text-white/75">سعر البيع</div>
+                  <div className="num text-lg font-extrabold">{formatIQD(r?.sell, false)}</div>
+                </div>
+                <div className="rounded-2xl bg-white/12 px-3.5 py-2.5">
+                  <div className="text-xs text-white/75">سعر الشراء</div>
+                  <div className="num text-lg font-extrabold">{formatIQD(r?.buy, false)}</div>
+                </div>
               </div>
-              <div className="rounded-2xl bg-white/12 px-3.5 py-2.5">
-                <div className="text-xs text-white/75">سعر الشراء</div>
-                <div className="num text-lg font-extrabold">{formatIQD(r?.buy, false)}</div>
-              </div>
-            </div>
+            )}
             <div className="mt-3 text-[11px] text-white/70">
               {r?.market_time ? `آخر تحديث ${timeAgo(r.market_time)}` : ''}
               {r?.source_label ? ` · ${r.source_label}` : ''}
@@ -122,6 +124,9 @@ export const HomeScreen: React.FC = () => {
           <span className="flex flex-col items-end gap-1">
             <ChangeBadge change={goldChange} />
             {gold && <span className="num text-[11px] text-muted">الغرام {formatIQD(gold.g21, false)}</span>}
+            {r?.warnings?.includes('gold21_carried_forward') && (
+              <span className="text-[10px] font-bold text-muted">آخر سعر معروف</span>
+            )}
           </span>
         </button>
 
