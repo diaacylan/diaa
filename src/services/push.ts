@@ -57,14 +57,15 @@ async function native() {
   const { Capacitor } = await withTimeout(import('@capacitor/core'), 8000, 'تحميل core');
   if (!Capacitor.isNativePlatform()) return null;
   const { FirebaseMessaging } = await withTimeout(import('@capacitor-firebase/messaging'), 8000, 'تحميل الإضافة');
-  return FirebaseMessaging;
+  // مهم: لا نُرجع الإضافة نفسها من دالة async (كائن Capacitor يتصرف كأنه Promise فيعلق الانتظار)
+  return { fm: FirebaseMessaging };
 }
 
 export async function getPushState(): Promise<PushState> {
   try {
-    const fm = await native();
-    if (!fm) return 'unsupported';
-    const r = await withTimeout(fm.checkPermissions(), 8000, 'فحص الإذن');
+    const n = await native();
+    if (!n) return 'unsupported';
+    const r = await withTimeout(n.fm.checkPermissions(), 8000, 'فحص الإذن');
     return r.receive === 'granted' ? 'granted' : r.receive === 'denied' ? 'denied' : 'prompt';
   } catch (e) {
     fail('getPushState', e);
@@ -75,8 +76,9 @@ export async function getPushState(): Promise<PushState> {
 /** يطلب إذن الإشعارات، ثم يشترك في المواضيع المطلوبة */
 export async function enablePush(topics: string[] = PUSH_TOPICS.map((t) => t.id)): Promise<PushState> {
   try {
-    const fm = await native();
-    if (!fm) return 'unsupported';
+    const n = await native();
+    if (!n) return 'unsupported';
+    const fm = n.fm;
     lastPushError = '';
     let r = await withTimeout(fm.checkPermissions(), 8000, 'فحص الإذن');
     if (r.receive !== 'granted') r = await withTimeout(fm.requestPermissions(), 15000, 'طلب الإذن');
@@ -117,8 +119,9 @@ export function diagInfo(): string {
 }
 
 export async function setTopic(id: string, on: boolean): Promise<void> {
-  const fm = await native();
-  if (!fm) return;
+  const n = await native();
+  if (!n) return;
+  const fm = n.fm;
   if (on) await fm.subscribeToTopic({ topic: id });
   else await fm.unsubscribeFromTopic({ topic: id });
   const saved = loadSaved();
