@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "711757144332",
+    "project_id": "com-example-myapplicatio-5fbff",
+    "storage_bucket": "com-example-myapplicatio-5fbff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:711757144332:android:7526c7dae6ce9cae5da929",
+        "android_client_info": {
+          "package_name": "com.dolariraq.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCA-g20z2MnThvHl2rRjqB4nRm_8ddRZhM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:711757144332:android:fc60d1226e6b08bd5da929",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCA-g20z2MnThvHl2rRjqB4nRm_8ddRZhM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
