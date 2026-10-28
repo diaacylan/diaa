@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, BellOff, Settings } from 'lucide-react';
 import { AppBar } from '../components/ui';
-import { PUSH_TOPICS, PushState, enablePush, getPushState, loadSaved, setTopic } from '../services/push';
+import { PUSH_TOPICS, PushState, enablePush, getPushState, lastPushError, loadSaved, setTopic } from '../services/push';
 
 export const NotificationsScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [state, setState] = useState<PushState>('prompt');
   const [topics, setTopics] = useState<Record<string, boolean>>(loadSaved().topics);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
 
   useEffect(() => {
-    getPushState().then(setState);
+    getPushState().then((s) => {
+      setState(s);
+      setErr(lastPushError);
+    });
   }, []);
 
   const activate = async () => {
@@ -17,6 +21,7 @@ export const NotificationsScreen: React.FC<{ onBack: () => void }> = ({ onBack }
     const s = await enablePush();
     setState(s);
     setTopics(loadSaved().topics);
+    setErr(lastPushError);
     setBusy(false);
   };
 
@@ -87,6 +92,11 @@ export const NotificationsScreen: React.FC<{ onBack: () => void }> = ({ onBack }
               </span>
             )}
           </div>
+        )}
+        {err && (
+          <p dir="ltr" className="selectable mt-3 break-words rounded-xl bg-down/10 p-3 text-start text-[11px] text-down">
+            {err}
+          </p>
         )}
       </div>
     </>

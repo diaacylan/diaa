@@ -28,10 +28,35 @@ const save = (s: Saved) => {
 };
 export const markAsked = () => save({ ...loadSaved(), asked: true });
 
+/** آخر خطأ تقني (يُعرض في شاشة الإشعارات للتشخيص) */
+export let lastPushError = '';
+const fail = (step: string, e: unknown) => {
+  const msg = e instanceof Error ? e.message : typeof e === 'string' ? e : JSON.stringify(e);
+  lastPushError = `${step}: ${msg}`;
+  console.warn('push', lastPushError);
+};
+
+/** لا نسمح لأي استدعاء أصلي بالتعليق إلى الأبد */
+function withTimeout<T>(p: Promise<T>, ms: number, step: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${step} انتهت المهلة`)), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
+}
+
 async function native() {
-  const { Capacitor } = await import('@capacitor/core');
+  const { Capacitor } = await withTimeout(import('@capacitor/core'), 8000, 'تحميل core');
   if (!Capacitor.isNativePlatform()) return null;
-  const { FirebaseMessaging } = await import('@capacitor-firebase/messaging');
+  const { FirebaseMessaging } = await withTimeout(import('@capacitor-firebase/messaging'), 8000, 'تحميل الإضافة');
   return FirebaseMessaging;
 }
 
@@ -39,9 +64,10 @@ export async function getPushState(): Promise<PushState> {
   try {
     const fm = await native();
     if (!fm) return 'unsupported';
-    const r = await fm.checkPermissions();
+    const r = await withTimeout(fm.checkPermissions(), 8000, 'فحص الإذن');
     return r.receive === 'granted' ? 'granted' : r.receive === 'denied' ? 'denied' : 'prompt';
-  } catch {
+  } catch (e) {
+    fail('getPushState', e);
     return 'unsupported';
   }
 }
@@ -51,25 +77,35 @@ export async function enablePush(topics: string[] = PUSH_TOPICS.map((t) => t.id)
   try {
     const fm = await native();
     if (!fm) return 'unsupported';
-    let r = await fm.checkPermissions();
-    if (r.receive !== 'granted') r = await fm.requestPermissions();
+    lastPushError = '';
+    let r = await withTimeout(fm.checkPermissions(), 8000, 'فحص الإذن');
+    if (r.receive !== 'granted') r = await withTimeout(fm.requestPermissions(), 90000, 'طلب الإذن');
     markAsked();
     if (r.receive !== 'granted') return r.receive === 'denied' ? 'denied' : 'prompt';
     const saved = loadSaved();
     for (const t of PUSH_TOPICS) {
       const on = topics.includes(t.id);
-      if (on) await fm.subscribeToTopic({ topic: t.id });
-      saved.topics[t.id] = on;
+      if (on) {
+        try {
+          await withTimeout(fm.subscribeToTopic({ topic: t.id }), 15000, `اشتراك ${t.id}`);
+          saved.topics[t.id] = true;
+        } catch (e) {
+          fail(`subscribe ${t.id}`, e);
+          saved.topics[t.id] = false;
+        }
+      } else saved.topics[t.id] = false;
     }
     save(saved);
     // تسجيل اختياري لدى الخادم إن كان يدعمه (لا يؤثر على عمل الإشعارات عبر المواضيع)
     try {
-      const { token } = await fm.getToken();
+      const { token } = await withTimeout(fm.getToken(), 15000, 'getToken');
       if (token) DolarIraqApi.registerPushToken(token, topics);
-    } catch {}
+    } catch (e) {
+      fail('getToken', e);
+    }
     return 'granted';
   } catch (e) {
-    console.warn('push enable failed', e);
+    fail('enablePush', e);
     return 'unsupported';
   }
 }
