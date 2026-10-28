@@ -23,6 +23,13 @@ jobs:
           elif [ -n "$GS" ]; then printf '%s' "$GS" > android/app/google-services.json
           else echo "No google-services.json found: push notifications will not work in this build"; fi
       - run: npx cap sync android
+      - name: App icons (from assets/)
+        run: npx @capacitor/assets generate --android
+      - name: Notification icon and colour
+        run: |
+          mkdir -p android/app/src/main/res/drawable
+          cp android-extras/ic_stat_notify.xml android/app/src/main/res/drawable/ic_stat_notify.xml
+          sed -i 's#</application>#        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_notify" />\n        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@android:color/holo_green_dark" />\n    </application>#' android/app/src/main/AndroidManifest.xml
       - name: Allow notifications permission (Android 13+)
         run: sed -i 's#</manifest>#    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n</manifest>#' android/app/src/main/AndroidManifest.xml
       - name: Build debug APK
