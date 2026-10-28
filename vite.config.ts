@@ -5,6 +5,9 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    define: {
+      __BUILD__: JSON.stringify((process.env.GITHUB_SHA || 'dev').slice(0, 7)),
+    },
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

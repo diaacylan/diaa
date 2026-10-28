@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, BellOff, Settings } from 'lucide-react';
 import { AppBar } from '../components/ui';
-import { PUSH_TOPICS, PushState, enablePush, getPushState, lastPushError, loadSaved, setTopic } from '../services/push';
+import { PUSH_TOPICS, PushState, diagInfo, enablePush, getPushState, lastPushError, loadSaved, setTopic } from '../services/push';
 
 export const NotificationsScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [state, setState] = useState<PushState>('prompt');
@@ -10,10 +10,21 @@ export const NotificationsScreen: React.FC<{ onBack: () => void }> = ({ onBack }
   const [err, setErr] = useState('');
 
   useEffect(() => {
-    getPushState().then((s) => {
+    const check = async () => {
+      const s = await getPushState();
       setState(s);
       setErr(lastPushError);
-    });
+      // إذا فعّل المستخدم الإذن يدوياً من إعدادات الهاتف، نكمل الاشتراك تلقائياً
+      if (s === 'granted' && !Object.values(loadSaved().topics).some(Boolean)) {
+        await enablePush();
+        setTopics(loadSaved().topics);
+        setErr(lastPushError);
+      }
+    };
+    check();
+    const onVisible = () => document.visibilityState === 'visible' && check();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   const activate = async () => {
@@ -93,6 +104,13 @@ export const NotificationsScreen: React.FC<{ onBack: () => void }> = ({ onBack }
             )}
           </div>
         )}
+        {state === 'prompt' && err && (
+          <p className="mt-3 rounded-xl bg-surface-2 p-3 text-[13px] leading-relaxed text-ink">
+            إذا لم تظهر نافذة السماح: افتح إعدادات الهاتف ← التطبيقات ← دولار العراق ← الإشعارات، وفعّلها، ثم ارجع إلى
+            التطبيق وسيكتمل التفعيل تلقائياً.
+          </p>
+        )}
+        <p dir="ltr" className="mt-3 text-center text-[11px] text-muted">{diagInfo()}</p>
         {err && (
           <p dir="ltr" className="selectable mt-3 break-words rounded-xl bg-down/10 p-3 text-start text-[11px] text-down">
             {err}

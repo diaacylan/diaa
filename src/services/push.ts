@@ -79,7 +79,7 @@ export async function enablePush(topics: string[] = PUSH_TOPICS.map((t) => t.id)
     if (!fm) return 'unsupported';
     lastPushError = '';
     let r = await withTimeout(fm.checkPermissions(), 8000, 'فحص الإذن');
-    if (r.receive !== 'granted') r = await withTimeout(fm.requestPermissions(), 90000, 'طلب الإذن');
+    if (r.receive !== 'granted') r = await withTimeout(fm.requestPermissions(), 15000, 'طلب الإذن');
     markAsked();
     if (r.receive !== 'granted') return r.receive === 'denied' ? 'denied' : 'prompt';
     const saved = loadSaved();
@@ -108,6 +108,12 @@ export async function enablePush(topics: string[] = PUSH_TOPICS.map((t) => t.id)
     fail('enablePush', e);
     return 'unsupported';
   }
+}
+
+/** معلومات تشخيصية قصيرة تُعرض في شاشة الإشعارات */
+export function diagInfo(): string {
+  const m = /Android [\d.]+/.exec(navigator.userAgent);
+  return `${m ? m[0] : 'web'} · build ${typeof __BUILD__ === 'string' ? __BUILD__ : '?'}`;
 }
 
 export async function setTopic(id: string, on: boolean): Promise<void> {
