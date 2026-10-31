@@ -46,7 +46,17 @@ jobs:
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -z "$KS_B64" ] || [ -z "$KS_PASS" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASS" ]; then echo "Missing signing secrets"; exit 1; fi
+          KS_B64=$(printf '%s' "$KS_B64" | tr -d '[:space:]')
+          KS_PASS=$(printf '%s' "$KS_PASS" | tr -d '[:space:]')
+          KEY_PASS=$(printf '%s' "$KEY_PASS" | tr -d '[:space:]')
+          KEY_ALIAS=$(printf '%s' "$KEY_ALIAS" | tr -d '[:space:]')
           printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "password length: ${#KS_PASS} / key password length: ${#KEY_PASS} / alias: $KEY_ALIAS"
+          if ! keytool -list -keystore "$RUNNER_TEMP/release.jks" -storepass "$KS_PASS" -alias "$KEY_ALIAS" > /dev/null 2>&1; then echo "::error::Keystore password or alias is wrong. Re-enter ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_ALIAS"; exit 1; fi
+          echo "KS_PASS=$KS_PASS" >> "$GITHUB_ENV"
+          echo "KEY_PASS=$KEY_PASS" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "KS_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
           cat >> android/app/build.gradle <<GRADLE
 
           android {
@@ -65,11 +75,6 @@ jobs:
           GRADLE
       - name: Build signed AAB
         working-directory: android
-        env:
-          KS_FILE: ${{ runner.temp }}/release.jks
-          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew bundleRelease --no-daemon
       - name: Show signing certificate fingerprints
         run: keytool -printcert -jarfile android/app/build/outputs/bundle/release/app-release.aab | grep -E 'Owner|SHA1|SHA256'
