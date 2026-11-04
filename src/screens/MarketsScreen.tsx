@@ -141,12 +141,19 @@ export const MarketsScreen: React.FC = () => {
                 <SectionTitle>مقابل الدولار والدينار</SectionTitle>
                 <div className="card divide-y divide-line overflow-hidden">
                   {currencies.map((c) => {
-                    const inIqd = perUsdIqd && c.rate ? perUsdIqd / c.rate : null;
+                    // API gives `rate` = units of `quote` per 1 IQD (base IQD).
+                    // AED is pegged to the dollar (3.6725), so it gives the API's implied USD/IQD basis.
+                    const aed = currencies.find((x) => x.quote === 'AED')?.rate;
+                    const usdPerIqdRef = aed ? aed / 3.6725 : 0;
+                    const perUsd = c.rate && usdPerIqdRef ? c.rate / usdPerIqdRef : null; // units of quote per 1$
+                    const inIqd = c.rate ? (perUsd && perUsdIqd ? perUsdIqd / perUsd : 1 / c.rate) : null;
                     return (
                       <div key={c.quote} className="flex items-center justify-between gap-3 px-4 py-3">
                         <div className="min-w-0">
                           <div className="text-[15px] font-bold text-ink">{CUR_NAMES[c.quote] ?? c.quote}</div>
-                          <div className="num text-xs text-muted">1$ = {Number(c.rate.toFixed(4))} {c.quote}</div>
+                          <div className="num text-xs text-muted">
+                            {perUsd ? `1$ = ${Number(perUsd.toFixed(perUsd < 10 ? 4 : 2))} ${c.quote}` : c.quote}
+                          </div>
                         </div>
                         <div className="text-end">
                           <div className="num text-[15px] font-extrabold text-ink">{inIqd ? formatIQD(inIqd, false) : '—'}</div>

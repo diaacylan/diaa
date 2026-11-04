@@ -357,18 +357,9 @@ class DolarIraqApiService {
       throw new Error('No crypto data returned');
     } catch {
       const cached = this.getLocalCache<CryptoRate[]>(STORAGE_KEYS.CRYPTO);
+      // No placeholder prices: show nothing rather than invented numbers.
       return {
-        data: cached || [
-          { id: 'tether', symbol: 'USDT', name: 'Tether USD', nameAr: 'تيثر دولار (USDT)', priceUsd: 1.00, change24h: 0.05, high24h: 1.002, low24h: 0.998 },
-          { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', nameAr: 'بيتكوين', priceUsd: 87450, change24h: 2.14, high24h: 88200, low24h: 85600 },
-          { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', nameAr: 'إيثيريوم', priceUsd: 2280, change24h: 1.65, high24h: 2320, low24h: 2210 },
-          { id: 'solana', symbol: 'SOL', name: 'Solana', nameAr: 'سولانا', priceUsd: 148.5, change24h: 4.25, high24h: 152.0, low24h: 142.3 },
-          { id: 'binancecoin', symbol: 'BNB', name: 'BNB', nameAr: 'بينانس كوين', priceUsd: 625.8, change24h: 0.85, high24h: 635.0, low24h: 618.0 },
-          { id: 'toncoin', symbol: 'TON', name: 'Toncoin', nameAr: 'تون كوين (تيليجرام)', priceUsd: 3.85, change24h: -1.2, high24h: 3.98, low24h: 3.75 },
-          { id: 'ripple', symbol: 'XRP', name: 'XRP', nameAr: 'ريبل', priceUsd: 2.15, change24h: 3.12, high24h: 2.24, low24h: 2.05 },
-          { id: 'cardano', symbol: 'ADA', name: 'Cardano', nameAr: 'كاردانو', priceUsd: 0.74, change24h: -0.45, high24h: 0.77, low24h: 0.72 },
-          { id: 'dogecoin', symbol: 'DOGE', name: 'Dogecoin', nameAr: 'دوجكوين', priceUsd: 0.22, change24h: 5.4, high24h: 0.24, low24h: 0.21 },
-        ],
+        data: cached || [],
         isOffline: typeof navigator !== 'undefined' && !navigator.onLine,
       };
     }
