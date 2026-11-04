@@ -10,6 +10,7 @@ import { HistoryScreen } from './screens/HistoryScreen';
 import { MoreScreen, AboutScreen } from './screens/MoreScreen';
 import { NotificationsScreen } from './screens/NotificationsScreen';
 import { PushPrompt } from './components/PushPrompt';
+import { UpdatePrompt } from './components/UpdatePrompt';
 
 /** يربط زر الرجوع في أندرويد وشريط الحالة (يعمل فقط داخل التطبيق الأصلي) */
 const NativeBridge: React.FC = () => {
@@ -82,6 +83,7 @@ const Shell: React.FC = () => {
       </main>
       <BottomNav />
       <PushPrompt />
+      <UpdatePrompt />
     </div>
   );
 };
