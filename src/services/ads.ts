@@ -1,6 +1,7 @@
 import ADS from '../../admob.json';
 
 const CONFIG_URL = 'https://raw.githubusercontent.com/diaacylan/diaa/master/app-config.json';
+const OPEN_ID = ADS.test ? ADS.testAppOpenId : ADS.appOpenId;
 const STATE_KEY = 'dolariraq_ads_state';
 
 interface AdsCfg {
@@ -97,7 +98,7 @@ export async function initAds(): Promise<void> {
           if (s.day === d && s.count >= cfg.maxPerDay) return;
         }
         // نحمّل الإعلان أثناء الانتظار حتى يظهر في الموعد
-        const loading = AdMob.loadAppOpen({ adId: ADS.appOpenId });
+        const loading = AdMob.loadAppOpen({ adId: OPEN_ID });
         await sleep(cfg.delaySec * 1000);
         await loading;
         if (document.visibilityState !== 'visible') return;

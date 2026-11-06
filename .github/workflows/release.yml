@@ -37,7 +37,7 @@ jobs:
           if grep -Eq '"test": *true' admob.json; then echo "::error::admob.json still has test=true (test ads). Put real AdMob IDs and set test=false."; exit 1; fi
       - name: AdMob application id
         run: |
-          APPID=$(node -p "require('./admob.json').appId")
+          APPID=$(node -p "(j=>j.test?j.testAppId:j.appId)(require('./admob.json'))")
           sed -i "s#</application>#        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$APPID\" />\n    </application>#" android/app/src/main/AndroidManifest.xml
       - name: Allow notifications permission (Android 13+)
         run: sed -i 's#</manifest>#    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n</manifest>#' android/app/src/main/AndroidManifest.xml

@@ -1,5 +1,7 @@
 {
   "test": true,
-  "appId": "ca-app-pub-3940256099942544~3347511713",
-  "appOpenId": "ca-app-pub-3940256099942544/9257395921"
+  "testAppId": "ca-app-pub-3940256099942544~3347511713",
+  "testAppOpenId": "ca-app-pub-3940256099942544/9257395921",
+  "appId": "ca-app-pub-4560959124000202~7426039699",
+  "appOpenId": "ca-app-pub-4560959124000202/1598018006"
 }
