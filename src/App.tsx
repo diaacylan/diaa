@@ -11,6 +11,7 @@ import { MoreScreen, AboutScreen } from './screens/MoreScreen';
 import { NotificationsScreen } from './screens/NotificationsScreen';
 import { PushPrompt } from './components/PushPrompt';
 import { UpdatePrompt } from './components/UpdatePrompt';
+import { initAds } from './services/ads';
 
 /** يربط زر الرجوع في أندرويد وشريط الحالة (يعمل فقط داخل التطبيق الأصلي) */
 const NativeBridge: React.FC = () => {
@@ -62,6 +63,7 @@ const renderRoute = (r: Route, back: () => boolean) => {
 const Shell: React.FC = () => {
   const { tab, stack, back } = useApp();
   const top = stack[stack.length - 1];
+  useEffect(() => { void initAds(); }, []);
 
   return (
     <div className="mx-auto flex h-full max-w-[520px] flex-col bg-bg" dir="rtl">

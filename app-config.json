@@ -1,4 +1,11 @@
 {
   "minVersionCode": 0,
-  "message": ""
+  "message": "",
+  "ads": {
+    "enabled": true,
+    "delaySec": 3,
+    "cooldownMin": 30,
+    "maxPerDay": 6,
+    "skipFirstLaunch": true
+  }
 }
