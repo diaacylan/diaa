@@ -52,6 +52,9 @@ async function loadCfg(): Promise<AdsCfg> {
 
 let started = false;
 let busy = false;
+let adShowing = false;
+let lastClosedAt = 0;
+const TEST_COOLDOWN_MS = 30_000; // في الاختبار: فاصل قصير فقط لتفادي التكرار
 
 /** إعلان فتح التطبيق (App Open): يظهر بعد بضع ثوانٍ من الفتح، مع فاصل زمني وحد يومي. لا يعمل على الويب. */
 export async function initAds(): Promise<void> {
@@ -77,14 +80,24 @@ export async function initAds(): Promise<void> {
       if (!info.canRequestAds && !ADS.test) return;
     } catch {}
 
+    await AdMob.addListener(AppOpenAdPluginEvents.Closed, () => {
+      adShowing = false;
+      lastClosedAt = Date.now();
+    });
+    await AdMob.addListener(AppOpenAdPluginEvents.FailedToShow, () => {
+      adShowing = false;
+      lastClosedAt = Date.now();
+    });
     await AdMob.addListener(AppOpenAdPluginEvents.Opened, () => {
+      adShowing = true;
       const s = readState();
       const d = today();
       writeState({ ...s, last: Date.now(), day: d, count: s.day === d ? s.count + 1 : 1 });
     });
 
     const attempt = async () => {
-      if (busy) return;
+      // لا نعرض إعلاناً أثناء عرض آخر، ولا بعد إغلاقه مباشرة (عودة التطبيق من الإعلان ليست «فتحاً» جديداً)
+      if (busy || adShowing || Date.now() - lastClosedAt < 10_000) return;
       busy = true;
       try {
         const s = readState();
@@ -93,7 +106,9 @@ export async function initAds(): Promise<void> {
           writeState({ ...s, launched: true });
           if (cfg.skipFirstLaunch && !ADS.test) return; // لا إعلان في أول فتح للتطبيق
         }
-        if (!ADS.test) {
+        if (ADS.test) {
+          if (Date.now() - s.last < TEST_COOLDOWN_MS) return;
+        } else {
           if (Date.now() - s.last < cfg.cooldownMin * 60_000) return;
           if (s.day === d && s.count >= cfg.maxPerDay) return;
         }
