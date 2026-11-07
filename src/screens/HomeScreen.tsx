@@ -97,7 +97,6 @@ export const HomeScreen: React.FC = () => {
             )}
             <div className="mt-3 text-[11px] text-white/70">
               {r?.market_time ? `آخر تحديث ${timeAgo(r.market_time)}` : ''}
-              {r?.source_label ? ` · ${r.source_label}` : ''}
             </div>
           </div>
         </section>
