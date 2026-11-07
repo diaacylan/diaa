@@ -5,6 +5,8 @@ import { useApp } from '../context/AppContext';
 import { AppBar, ChangeBadge, OfflineBanner, SectionTitle, Skeleton, timeAgo } from '../components/ui';
 import { formatIQD, stripHtml } from '../utils/formatters';
 import { karatPrices, makeChange, previousPoint } from '../utils/derive';
+import { ShareButton } from '../components/ShareButton';
+import { cityPageUrl, priceShareText } from '../utils/share';
 
 export const HomeScreen: React.FC = () => {
   const { currentRates: r, history, articles, isLoading, isRefreshing, isOffline, lastUpdatedTime, refreshRates, setTab, push } =
@@ -52,9 +54,19 @@ export const HomeScreen: React.FC = () => {
           <div className="relative">
             <div className="flex items-center justify-between text-sm font-semibold text-white/80">
               <span>سعر 100 دولار في بغداد</span>
-              <span className="flex items-center gap-1.5 text-xs">
-                <span className={`h-2 w-2 rounded-full ${isOffline ? 'bg-red-300' : 'bg-emerald-300'}`} />
-                {isOffline ? 'غير متصل' : 'مباشر'}
+              <span className="flex items-center gap-2.5 text-xs">
+                <span className="flex items-center gap-1.5">
+                  <span className={`h-2 w-2 rounded-full ${isOffline ? 'bg-red-300' : 'bg-emerald-300'}`} />
+                  {isOffline ? 'غير متصل' : 'مباشر'}
+                </span>
+                {r?.rate_100_usd ? (
+                  <ShareButton
+                    onDark
+                    title="سعر الدولار في بغداد"
+                    text={priceShareText('بغداد', formatIQD(r.rate_100_usd))}
+                    url={cityPageUrl('baghdad')}
+                  />
+                ) : null}
               </span>
             </div>
             {isLoading && !r ? (

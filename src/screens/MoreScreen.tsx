@@ -5,7 +5,8 @@ import { AppBar, Row, SectionTitle } from '../components/ui';
 import { ThemeMode } from '../types';
 import { Logo } from '../components/Logo';
 
-export const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.dolariraq.app';
+import { PLAY_URL } from '../utils/share';
+export { PLAY_URL };
 
 const openUrl = (u: string) => window.open(u, '_blank', 'noopener');
 

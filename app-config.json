@@ -6,6 +6,7 @@
     "delaySec": 3,
     "cooldownMin": 30,
     "maxPerDay": 6,
-    "skipFirstLaunch": true
+    "skipFirstLaunch": true,
+    "banner": true
   }
 }

@@ -2,6 +2,7 @@ import ADS from '../../admob.json';
 
 const CONFIG_URL = 'https://raw.githubusercontent.com/diaacylan/diaa/master/app-config.json';
 const OPEN_ID = ADS.test ? ADS.testAppOpenId : ADS.appOpenId;
+const BANNER_ID = ADS.test ? ADS.testBannerId : ADS.bannerId;
 const STATE_KEY = 'dolariraq_ads_state';
 
 interface AdsCfg {
@@ -10,9 +11,10 @@ interface AdsCfg {
   cooldownMin: number;
   maxPerDay: number;
   skipFirstLaunch: boolean;
+  banner: boolean;
 }
 
-const DEFAULTS: AdsCfg = { enabled: true, delaySec: 3, cooldownMin: 30, maxPerDay: 6, skipFirstLaunch: true };
+const DEFAULTS: AdsCfg = { enabled: true, delaySec: 3, cooldownMin: 30, maxPerDay: 6, skipFirstLaunch: true, banner: true };
 
 interface State { launched: boolean; last: number; day: string; count: number }
 
@@ -44,10 +46,74 @@ async function loadCfg(): Promise<AdsCfg> {
         cooldownMin: Math.max(Number(a.cooldownMin ?? 30), 0),
         maxPerDay: Math.max(Number(a.maxPerDay ?? 6), 1),
         skipFirstLaunch: a.skipFirstLaunch !== false,
+        banner: a.banner !== false,
       };
     }
   } catch {}
   return DEFAULTS;
+}
+
+
+/* ---------- البنر (إعلان ثابت أسفل الصفحة الرئيسية، فوق شريط التنقل) ---------- */
+type BannerState = 'none' | 'visible' | 'hidden';
+let adsReady = false;
+let bannerEnabled = true;
+let bannerState: BannerState = 'none';
+let bannerHeight = 0;
+let bannerWanted = false;
+let bannerMargin = 0;
+let bannerBusy = false;
+const bannerListeners = new Set<(h: number) => void>();
+const setBannerHeight = (h: number) => {
+  bannerHeight = h;
+  bannerListeners.forEach((l) => l(h));
+};
+
+/** يعطي ارتفاع البنر الحالي (0 = غير ظاهر) لتحجز الواجهة مساحته. */
+export function subscribeBanner(l: (h: number) => void): () => void {
+  bannerListeners.add(l);
+  l(bannerHeight);
+  return () => void bannerListeners.delete(l);
+}
+
+async function syncBanner(): Promise<void> {
+  if (bannerBusy) return;
+  bannerBusy = true;
+  try {
+    if (!adsReady || !bannerEnabled || !BANNER_ID) {
+      if (bannerHeight !== 0) setBannerHeight(0);
+      return;
+    }
+    const { AdMob, BannerAdSize, BannerAdPosition } = await import('@capacitor-community/admob');
+    if (bannerWanted && bannerState === 'none') {
+      await AdMob.showBanner({
+        adId: BANNER_ID,
+        adSize: BannerAdSize.ADAPTIVE_BANNER,
+        position: BannerAdPosition.BOTTOM_CENTER,
+        margin: bannerMargin,
+        isTesting: ADS.test,
+      });
+      bannerState = 'visible';
+    } else if (bannerWanted && bannerState === 'hidden') {
+      await AdMob.resumeBanner();
+      bannerState = 'visible';
+    } else if (!bannerWanted && bannerState === 'visible') {
+      await AdMob.hideBanner();
+      bannerState = 'hidden';
+      setBannerHeight(0);
+    }
+  } catch {
+    setBannerHeight(0);
+  } finally {
+    bannerBusy = false;
+  }
+}
+
+/** تُستدعى من الواجهة: هل يجب أن يظهر البنر الآن، وكم الهامش السفلي (dp) ليجلس فوق شريط التنقل. */
+export function setBannerVisible(visible: boolean, marginDp: number): void {
+  bannerWanted = visible;
+  bannerMargin = Math.max(0, Math.round(marginDp));
+  void syncBanner();
 }
 
 let started = false;
@@ -79,6 +145,15 @@ export async function initAds(): Promise<void> {
       }
       if (!info.canRequestAds && !ADS.test) return;
     } catch {}
+
+    bannerEnabled = cfg.banner;
+    const { BannerAdPluginEvents } = await import('@capacitor-community/admob');
+    await AdMob.addListener(BannerAdPluginEvents.SizeChanged, (info) => {
+      if (bannerState === 'visible') setBannerHeight(Math.round(info.height || 0));
+    });
+    await AdMob.addListener(BannerAdPluginEvents.FailedToLoad, () => setBannerHeight(0));
+    adsReady = true;
+    void syncBanner();
 
     await AdMob.addListener(AppOpenAdPluginEvents.Closed, () => {
       adShowing = false;

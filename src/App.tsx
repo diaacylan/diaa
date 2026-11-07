@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppProvider, useApp, Route } from './context/AppContext';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './screens/HomeScreen';
@@ -11,7 +11,7 @@ import { MoreScreen, AboutScreen } from './screens/MoreScreen';
 import { NotificationsScreen } from './screens/NotificationsScreen';
 import { PushPrompt } from './components/PushPrompt';
 import { UpdatePrompt } from './components/UpdatePrompt';
-import { initAds } from './services/ads';
+import { initAds, setBannerVisible, subscribeBanner } from './services/ads';
 
 /** يربط زر الرجوع في أندرويد وشريط الحالة (يعمل فقط داخل التطبيق الأصلي) */
 const NativeBridge: React.FC = () => {
@@ -60,6 +60,27 @@ const renderRoute = (r: Route, back: () => boolean) => {
   }
 };
 
+/** مساحة البنر: شريط صغير فوق شريط التنقل في الصفحة الرئيسية فقط، لا يغطي أي محتوى. */
+const BannerSlot: React.FC<{ active: boolean }> = ({ active }) => {
+  const [h, setH] = useState(0);
+  useEffect(() => subscribeBanner(setH), []);
+  useEffect(() => {
+    const nav = document.querySelector('nav[aria-label="التنقل الرئيسي"]');
+    let margin = 0;
+    if (nav) {
+      const pb = parseFloat(getComputedStyle(nav).paddingBottom) || 0;
+      margin = nav.getBoundingClientRect().height - pb; // الإضافة نفسها تضيف هامش الحافة الآمنة
+    }
+    setBannerVisible(active, margin);
+  }, [active]);
+  if (!active || h <= 0) return null;
+  return (
+    <div className="shrink-0 border-t border-line bg-surface" style={{ height: h + 16 }}>
+      <div className="h-4 text-center text-[10px] leading-4 text-muted">إعلان</div>
+    </div>
+  );
+};
+
 const Shell: React.FC = () => {
   const { tab, stack, back } = useApp();
   const top = stack[stack.length - 1];
@@ -83,6 +104,7 @@ const Shell: React.FC = () => {
           <MoreScreen />
         )}
       </main>
+      <BannerSlot active={!top && tab === 'home'} />
       <BottomNav />
       <PushPrompt />
       <UpdatePrompt />

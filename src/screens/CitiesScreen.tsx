@@ -3,6 +3,8 @@ import { Search, ChevronLeft, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AppBar, Empty, Skeleton } from '../components/ui';
 import { formatIQD } from '../utils/formatters';
+import { ShareButton } from '../components/ShareButton';
+import { cityPageUrl, priceShareText } from '../utils/share';
 
 export const CitiesScreen: React.FC = () => {
   const { currentRates: r, isLoading, push } = useApp();
@@ -76,7 +78,17 @@ export const CityDetail: React.FC<{ cityKey: string; onBack: () => void }> = ({ 
   const per1 = city.rate / 100;
   return (
     <>
-      <AppBar title={city.city_name} onBack={onBack} />
+      <AppBar
+        title={city.city_name}
+        onBack={onBack}
+        actions={
+          <ShareButton
+            title={`سعر الدولار في ${city.city_name}`}
+            text={priceShareText(city.city_name, formatIQD(city.rate))}
+            url={cityPageUrl(city.city_key)}
+          />
+        }
+      />
       <div className="scroll-area flex-1 px-4 pb-6">
         <section className="rounded-3xl p-5 text-white" style={{ background: 'linear-gradient(135deg,#0B7A4B,#075C39)' }}>
           <div className="text-sm font-semibold text-white/80">سعر 100 دولار في {city.city_name}</div>
