@@ -14,7 +14,7 @@ interface AdsCfg {
   banner: boolean;
 }
 
-const DEFAULTS: AdsCfg = { enabled: true, delaySec: 3, cooldownMin: 30, maxPerDay: 6, skipFirstLaunch: true, banner: true };
+const DEFAULTS: AdsCfg = { enabled: true, delaySec: 1, cooldownMin: 30, maxPerDay: 6, skipFirstLaunch: true, banner: true };
 
 interface State { launched: boolean; last: number; day: string; count: number }
 
@@ -42,7 +42,7 @@ async function loadCfg(): Promise<AdsCfg> {
       const a = (await r.json()).ads || {};
       return {
         enabled: a.enabled !== false,
-        delaySec: Math.min(Math.max(Number(a.delaySec ?? 3), 1), 15),
+        delaySec: Math.min(Math.max(Number(a.delaySec ?? 1), 1), 15),
         cooldownMin: Math.max(Number(a.cooldownMin ?? 30), 0),
         maxPerDay: Math.max(Number(a.maxPerDay ?? 6), 1),
         skipFirstLaunch: a.skipFirstLaunch !== false,
@@ -63,6 +63,7 @@ let bannerHeight = 0;
 let bannerWanted = false;
 let bannerMargin = 0;
 let bannerBusy = false;
+let appOpenActive = false; // إعلان الفتح قيد العرض: البنر مخفي
 const bannerListeners = new Set<(h: number) => void>();
 const setBannerHeight = (h: number) => {
   bannerHeight = h;
@@ -85,7 +86,9 @@ async function syncBanner(): Promise<void> {
       return;
     }
     const { AdMob, BannerAdSize, BannerAdPosition } = await import('@capacitor-community/admob');
-    if (bannerWanted && bannerState === 'none') {
+    // سياسة AdMob: لا يظهر إعلان الفتح فوق بنر، لذلك نخفي البنر أثناء عرضه
+    const wanted = bannerWanted && !appOpenActive;
+    if (wanted && bannerState === 'none') {
       await AdMob.showBanner({
         adId: BANNER_ID,
         adSize: BannerAdSize.ADAPTIVE_BANNER,
@@ -94,10 +97,10 @@ async function syncBanner(): Promise<void> {
         isTesting: ADS.test,
       });
       bannerState = 'visible';
-    } else if (bannerWanted && bannerState === 'hidden') {
+    } else if (wanted && bannerState === 'hidden') {
       await AdMob.resumeBanner();
       bannerState = 'visible';
-    } else if (!bannerWanted && bannerState === 'visible') {
+    } else if (!wanted && bannerState === 'visible') {
       await AdMob.hideBanner();
       bannerState = 'hidden';
       setBannerHeight(0);
@@ -157,11 +160,16 @@ export async function initAds(): Promise<void> {
 
     await AdMob.addListener(AppOpenAdPluginEvents.Closed, () => {
       adShowing = false;
+      appOpenActive = false;
       lastClosedAt = Date.now();
+      // لا بنر مباشرة بعد إعلان الفتح (السياسة تمنع عرض إعلان قبل/بعده مباشرة)
+      setTimeout(() => void syncBanner(), 3000);
     });
     await AdMob.addListener(AppOpenAdPluginEvents.FailedToShow, () => {
       adShowing = false;
+      appOpenActive = false;
       lastClosedAt = Date.now();
+      void syncBanner();
     });
     await AdMob.addListener(AppOpenAdPluginEvents.Opened, () => {
       adShowing = true;
@@ -192,8 +200,12 @@ export async function initAds(): Promise<void> {
         await sleep(cfg.delaySec * 1000);
         await loading;
         if (document.visibilityState !== 'visible') return;
+        appOpenActive = true;
+        await syncBanner();
         await AdMob.showAppOpen();
       } catch {
+        appOpenActive = false;
+        void syncBanner();
         /* فشل التحميل أو العرض: لا شيء يظهر للمستخدم */
       } finally {
         busy = false;

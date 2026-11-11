@@ -3,7 +3,7 @@
   "message": "",
   "ads": {
     "enabled": true,
-    "delaySec": 3,
+    "delaySec": 1,
     "cooldownMin": 30,
     "maxPerDay": 6,
     "skipFirstLaunch": true,

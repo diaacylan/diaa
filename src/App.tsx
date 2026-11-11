@@ -60,6 +60,9 @@ const renderRoute = (r: Route, back: () => boolean) => {
   }
 };
 
+/** فراغ بين البنر وشريط التنقل (dp) — سياسة AdMob: لا بنر ملاصق للأزرار لتفادي النقر بالخطأ. */
+const BANNER_GAP = 12;
+
 /** مساحة البنر: شريط صغير فوق شريط التنقل في الصفحة الرئيسية فقط، لا يغطي أي محتوى. */
 const BannerSlot: React.FC<{ active: boolean }> = ({ active }) => {
   const [h, setH] = useState(0);
@@ -69,13 +72,13 @@ const BannerSlot: React.FC<{ active: boolean }> = ({ active }) => {
     let margin = 0;
     if (nav) {
       const pb = parseFloat(getComputedStyle(nav).paddingBottom) || 0;
-      margin = nav.getBoundingClientRect().height - pb; // الإضافة نفسها تضيف هامش الحافة الآمنة
+      margin = nav.getBoundingClientRect().height - pb + BANNER_GAP; // الإضافة نفسها تضيف هامش الحافة الآمنة
     }
     setBannerVisible(active, margin);
   }, [active]);
   if (!active || h <= 0) return null;
   return (
-    <div className="shrink-0 border-t border-line bg-surface" style={{ height: h + 16 }}>
+    <div className="shrink-0 border-t border-line bg-surface" style={{ height: h + 16 + BANNER_GAP }}>
       <div className="h-4 text-center text-[10px] leading-4 text-muted">إعلان</div>
     </div>
   );
