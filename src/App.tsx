@@ -63,7 +63,7 @@ const renderRoute = (r: Route, back: () => boolean) => {
 /** فراغ بين البنر وشريط التنقل (dp) — سياسة AdMob: لا بنر ملاصق للأزرار لتفادي النقر بالخطأ. */
 const BANNER_GAP = 12;
 
-/** مساحة البنر: شريط صغير فوق شريط التنقل في الصفحة الرئيسية فقط، لا يغطي أي محتوى. */
+/** مساحة البنر: شريط صغير فوق شريط التنقل في شاشة الأسواق فقط، لا يغطي أي محتوى. */
 const BannerSlot: React.FC<{ active: boolean }> = ({ active }) => {
   const [h, setH] = useState(0);
   useEffect(() => subscribeBanner(setH), []);
@@ -107,7 +107,7 @@ const Shell: React.FC = () => {
           <MoreScreen />
         )}
       </main>
-      <BannerSlot active={!top && tab === 'home'} />
+      <BannerSlot active={!top && tab === 'markets'} />
       <BottomNav />
       <PushPrompt />
       <UpdatePrompt />
