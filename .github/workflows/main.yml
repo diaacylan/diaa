@@ -35,7 +35,7 @@ jobs:
           APPID=$(node -p "(j=>j.test?j.testAppId:j.appId)(require('./admob.json'))")
           sed -i "s#</application>#        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$APPID\" />\n    </application>#" android/app/src/main/AndroidManifest.xml
       - name: Allow notifications permission (Android 13+)
-        run: sed -i 's#</manifest>#    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n</manifest>#' android/app/src/main/AndroidManifest.xml
+        run: sed -i 's#</manifest>#    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>\n</manifest>#' android/app/src/main/AndroidManifest.xml
       - name: Build debug APK
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon
